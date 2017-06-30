@@ -14,12 +14,3 @@ w0www0w0000000w
 w00000ww0wwww0w
 wwwwwwwwwwwwwfw
 
-
-
-# Level definition :
-# s = start
-# f = finish
-# w = wall
-# 0 = empty bloc
-# i = item
-
