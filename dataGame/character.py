@@ -1,64 +1,120 @@
+#! /usr/bin/env python 3
+# coding : utf-8
+import dataGame.items
 
 class Character:
     def __init__(self):
-        self.position = [2, 1]
-        
+        # Instantiation of the Item class
+        self.itemInGame = dataGame.items.Item()
 
-    """def move(self, event, can, level, position, avatar, move):
-        print("def move")
-        n_cols = len(level[0])
-        n_lignes = len(level)
-        self.pos_col, self.pos_ligne = [self.position[0], self.position[1]]
-        # Right move
+    def key_init(self, window, canvas, lab, characPosition, character, start_game):
+        """
+            Initialisation du comportement des touches du clavier
+
+            canvas  : canevas où afficher les sprites
+            lab     : liste contenant le labyrinthe
+            characPosition : position courante du personnage
+            perso   : sprite représentant le personnage
+
+            Pas de valeur de retour
+        """
+        window.bind("<Right>", lambda event, can = canvas, l = lab,
+                    pos = characPosition,
+                    p = character : self.game_move(event, can, "right", l, pos, p, start_game))
+
+        window.bind("<Left>", lambda event, can = canvas, l = lab,
+                    pos = characPosition,
+                    p = character : self.game_move(event, can, "left", l, pos, p, start_game))
+
+        window.bind("<Up>", lambda event, can = canvas, l = lab,
+                    pos = characPosition,
+                    p = character : self.game_move(event, can, "up", l, pos, p, start_game))
+
+        window.bind("<Down>", lambda event, can = canvas, l = lab,
+                    pos = characPosition,
+                    p = character : self.game_move(event, can, "down", l, pos, p, start_game))
+
+
+        window.bind("<Escape>", lambda event, fen = window : self.destroy(event, fen))
+
+
+
+    def game_move(self, event, can, move, lab, characPosition, character, start_game):
+        """
+            deplacement du personnage
+
+            event   : objet décrivant l'événement ayant déclenché
+                                        l'appel à cette fonction
+            can     : canevas où afficher les sprites
+            move     : type de déplacemnt ("up", "down", "right" ou "left") #dep
+            lab     : liste contenant le labyrinthe
+            characPosition : position courante du personnage
+            perso   : sprite représentant le personnage
+
+            Pas de valeur de retour
+        """
+        # Calculation of the size of the labyrinth
+        n_col = len(lab[0])
+        n_line = len(lab)
+        self.pos_col, self.pos_line = [characPosition[0], characPosition[1]]
+        # Moving to the right
         if move == "right":
             self.pos_col += 1
-        # left move
+        # Moving to the left :
         elif move == "left":
             self.pos_col -= 1
-        # up move
+        # Moving to the top  :
         elif move == "up":
-            self.pos_ligne -= 1
-        # down move
+            self.pos_line -= 1
+        # Moving to the bottom :
         elif move == "down":
-            self.pos_ligne += 1
-        # test sortie de plateau
-        if self.pos_ligne < 0 or self.pos_col < 0 or self.pos_ligne > (n_lignes - 1) or self.pos_col > (n_cols - 1):
+            self.pos_line += 1
+
+        # Tests if moving leads outside the playing area
+        if self.pos_line < 0 or self.pos_col < 0 or self.pos_line > (n_line -1) or self.pos_col > (n_col -1):
             return None
-        # test presence objet
 
+            # Une position hors labyrinthe indique la victoire
+        if lab[self.pos_line][self.pos_col] == "O":
+                return [-1,-1]
+###############################################################################
+        elif lab[self.pos_line][self.pos_col] == "1" or lab[self.pos_line][self.pos_col] == "2" or lab[self.pos_line][self.pos_col] == "3":
+            if lab[self.pos_line][self.pos_col] == "1":
+               can.delete(start_game.item1)
+            elif lab[self.pos_line][self.pos_col] == "2":
+               can.delete(start_game.item2)
+            elif lab[self.pos_line][self.pos_col] == "3":
+               can.delete(start_game.item3) 
+                
 
-        # test si deplacement possible sur une case vide
-        elif level[self.pos_ligne][self.pos_col] == "0":
-            can.coords(avatar, self.pos_col + self.pos_col * 50, self.pos_ligne + self.pos_ligne * 50)
-            del self.pos_hero[0]
-            del self.pos_hero[0]
-            pos_hero.append(self.pos_col)
-            pos_hero.append(self.pos_ligne)
+        # Teste si le personnage se déplace sur un trésor
+    # Découverte d'un trésor
+    # Fonction qui calcul le montant d'un butin
+        
+    # On supprime le trésor découvert
+            lab[self.pos_line] = lab[self.pos_line][:self.pos_col] + " " + lab[self.pos_line][self.pos_col +1:]
+            can.coords(character, self.pos_col + self.pos_col * 50, self.pos_line + self.pos_line * 50)
 
-            level[self.pos_ligne] = level[self.pos_ligne][:self.pos_col] + "0" + level[self.pos_ligne][self.pos_col + 1:]
+            
+        ######################################################################################
 
-            return [self.pos_col, self.pos_ligne]"""
+        # Test if movement is possible on an empty square
+        if lab[self.pos_line][self.pos_col] == " ":
+            can.coords(character, self.pos_col + self.pos_col * 50, self.pos_line + self.pos_line * 50)
 
+            del characPosition[0]
+            del characPosition[0]
+            characPosition.append(self.pos_col)
+            characPosition.append(self.pos_line)
 
+    def destroy(self, event, window):
+        """
+            Fermeture de la window graphique
 
-    def eventHandler(self, event, window, position, avatar, level):
-        print("def eventHandler")
-        window.bind("<Right>",
-                    lambda event, can=window, l=level, pos=position, p=avatar: self.move(event, can, "right",
-                                                                                          l,
-                                                                                          pos, p)) #, game_treasures, game))
-        window.bind("<Left>",
-                    lambda event, can=window, l=level, pos=position, p=avatar: self.move(event, can, "left",
-                                                                                          l,
-                                                                                          pos, p)) #, game_treasures, game))
-        window.bind("<Up>",
-                    lambda event, can=window, l=level, pos=position, p=avatar: self.move(event, can, "up", l,
-                                                                                          pos,
-                                                                                          p)) #, game_treasures, game))
-        window.bind("<Down>",
-                    lambda event, can=window, l=level, pos=position, p=avatar: self.move(event, can, "down",
-                                                                                          l,
-                                                                                          pos, p)) #, game_treasures, game))
-        window.bind("<Escape>", lambda event, fen=window: self.destroy(event, fen))
+            event    : objet décrivant l'événement ayant déclenché
+                                        l'appel à cette fonction
+            window : Fenêtre graphique
 
-    
+            Pas de valeur de retour
+        """
+        window.destroy()
