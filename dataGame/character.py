@@ -2,12 +2,37 @@
 # coding : utf-8
 import dataGame.items
 
-class Character:
-    def __init__(self):
-        # Instantiation of the Item class
-        self.itemInGame = dataGame.items.Item()
 
-    def key_init(self, window, canvas, lab, characPosition, character, start_game):
+class Character:
+    def __init__(self, *game_attributes):
+        self.game_attributes = game_attributes[0]
+        n = 0
+        self.listItem = []
+        for attr_value in self.game_attributes:
+            n += 1
+            attr_name = "item"
+            attr_name = attr_name + str(n)
+            self.listItem.append(attr_value)
+            setattr(self, attr_name, attr_value)
+        print(self.item1,self.item2,self.item3)
+        self.PickUpItem = []
+        print(self.PickUpItem)
+
+        #self.item1 = "needle"
+        #self.item2 = "small plastic tube"
+        #self.item3 = "ether"
+
+    def inventory(self, ind, start_game):
+        self.ind = ind
+        #self.PickUpItem = "item" + str(ind +1)
+        self.PickUpItem.append(self.listItem[ind])
+        start_game.inventory_List.set(self.PickUpItem)
+
+        
+        
+    
+
+    def key_init(self, window, canvas, labyrinth, characPosition, character, start_game):
         """
             Initialisation du comportement des touches du clavier
 
@@ -18,19 +43,19 @@ class Character:
 
             Pas de valeur de retour
         """
-        window.bind("<Right>", lambda event, can = canvas, l = lab,
+        window.bind("<Right>", lambda event, can = canvas, l = labyrinth,
                     pos = characPosition,
                     p = character : self.game_move(event, can, "right", l, pos, p, start_game))
 
-        window.bind("<Left>", lambda event, can = canvas, l = lab,
+        window.bind("<Left>", lambda event, can = canvas, l = labyrinth,
                     pos = characPosition,
                     p = character : self.game_move(event, can, "left", l, pos, p, start_game))
 
-        window.bind("<Up>", lambda event, can = canvas, l = lab,
+        window.bind("<Up>", lambda event, can = canvas, l = labyrinth,
                     pos = characPosition,
                     p = character : self.game_move(event, can, "up", l, pos, p, start_game))
 
-        window.bind("<Down>", lambda event, can = canvas, l = lab,
+        window.bind("<Down>", lambda event, can = canvas, l = labyrinth,
                     pos = characPosition,
                     p = character : self.game_move(event, can, "down", l, pos, p, start_game))
 
@@ -39,7 +64,7 @@ class Character:
 
 
 
-    def game_move(self, event, can, move, lab, characPosition, character, start_game):
+    def game_move(self, event, can, move, labyrinth, characPosition, character, start_game):
         """
             deplacement du personnage
 
@@ -54,8 +79,8 @@ class Character:
             Pas de valeur de retour
         """
         # Calculation of the size of the labyrinth
-        n_col = len(lab[0])
-        n_line = len(lab)
+        n_col = len(labyrinth[0])
+        n_line = len(labyrinth)
         self.pos_col, self.pos_line = [characPosition[0], characPosition[1]]
         # Moving to the right
         if move == "right":
@@ -74,32 +99,32 @@ class Character:
         if self.pos_line < 0 or self.pos_col < 0 or self.pos_line > (n_line -1) or self.pos_col > (n_col -1):
             return None
 
-            # Une position hors labyrinthe indique la victoire
-        if lab[self.pos_line][self.pos_col] == "O":
-                return [-1,-1]
-###############################################################################
-        elif lab[self.pos_line][self.pos_col] == "1" or lab[self.pos_line][self.pos_col] == "2" or lab[self.pos_line][self.pos_col] == "3":
-            if lab[self.pos_line][self.pos_col] == "1":
-               can.delete(start_game.item1)
-            elif lab[self.pos_line][self.pos_col] == "2":
-               can.delete(start_game.item2)
-            elif lab[self.pos_line][self.pos_col] == "3":
-               can.delete(start_game.item3) 
-                
-
-        # Teste si le personnage se déplace sur un trésor
-    # Découverte d'un trésor
-    # Fonction qui calcul le montant d'un butin
+            # Gestion du gardien
+        if labyrinth[self.pos_line][self.pos_col] == "$":
+                if len(self.PickUpItem) < len(self.listItem):
+                    print("perdu")
+                    can.delete(start_game.sprite_hero)
+                else:
+                    print("gagné")
+                    can.delete(start_game.guardian)
         
+    # gestion des objets
+    # Test si le personnage se déplace sur un trésor
+    # Découverte d'un trésor        
     # On supprime le trésor découvert
-            lab[self.pos_line] = lab[self.pos_line][:self.pos_col] + " " + lab[self.pos_line][self.pos_col +1:]
-            can.coords(character, self.pos_col + self.pos_col * 50, self.pos_line + self.pos_line * 50)
+        else:
+            i = 0           
+            for objet in self.game_attributes:
+                if labyrinth[self.pos_line][self.pos_col] == str(i+1):
+                    Character.inventory(self, i, start_game)
+                    can.delete(start_game.item[i])
 
-            
-        ######################################################################################
+                    labyrinth[self.pos_line] = labyrinth[self.pos_line][:self.pos_col] + " " + labyrinth[self.pos_line][self.pos_col +1:]
+                    can.coords(character, self.pos_col + self.pos_col * 50, self.pos_line + self.pos_line * 50)
+                i += 1
 
         # Test if movement is possible on an empty square
-        if lab[self.pos_line][self.pos_col] == " ":
+        if labyrinth[self.pos_line][self.pos_col] == " " or labyrinth[self.pos_line][self.pos_col] == "$":
             can.coords(character, self.pos_col + self.pos_col * 50, self.pos_line + self.pos_line * 50)
 
             del characPosition[0]
