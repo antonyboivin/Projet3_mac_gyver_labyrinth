@@ -7,39 +7,62 @@ import dataGame.character
 import dataGame.items
 import json
 
+"""
+    The Labyrinth class will load the provided level as a
+     parameter, and then manage its display throughout the game.
+"""
+
 
 class Labyrinth:
+    """
+        This class allows you to instantiate objects of other classes.
+        It manages the graphical display of the window containing the game.
+        It manages the graphical display of the game.
+    """
     
     def __init__(self, **game_attributes):
+        """
+            Display :
+                -window : titre, instruction
+                -required items
+                -Inventory
+            Define :
+                -data level : characteristic of the level
+                            (required item, initial position, current level)
+            Instantiate : Instantiates an object of the Item and Character class
+        """
         
-        # Initializing the graphic display
+        # Initializing the graphical display of the window
         self.window = Tk()
         self.window.title("Help MacGyver to escape !")
         self.size_sprite = 50
-        self.introduction = Label(self.window, text="Help Mac escape from the labyrinth !",
-                                 font='Arial 20').grid(row =0, column=2, columnspan=2)
+        self.introduction = Label(self.window, 
+                                text="Help Mac escape from the labyrinth !",
+                                font='Arial 20', fg="red").grid(
+                                row =0, column=1, columnspan=3)
 
         # Initialization of level data
-        
         for attr_name, attr_value in game_attributes.items():
             setattr(self, attr_name, attr_value)
-            #self.current_level = "level_1"
-            #self.item = ['needle', 'small plastic tube', 'ether']
-            #self.characPosition = [1, 1]
 
-        
-        self.required_Item = Label(self.window, text="item1 : {}".
-                                        format(self.item[0:]),
-                                        font='Arial 8').grid(row =4, sticky='n')
-        
+        # Display the required item
+        self.required_Item = Label(self.window, text="To escape, Mac must find \n\
+all of the following objects : \n {}".format(self.item[0:]),
+                                    font='Arial 12', bg="black",
+                                    fg="white").grid(row =4, sticky='n')
         
         # Instantiation of the Item class
         self.itemInGame = dataGame.items.Item()
         
+        # Display the inventory
         self.inventory_List = StringVar()
+        self.label1 = Label(self.window, text="This your inventory :\n",
+                                        font='Arial 12',
+                                        fg="brown").grid(row =5, sticky='s')
         self.label2 = Label(self.window, textvariable=self.inventory_List,
-                                        font='Arial 8').grid(row =5, sticky='s')
-        self.inventory_List.set("hello")
+                                        font='Arial 10',
+                                        fg="black").grid(row =5, sticky='s')
+        self.inventory_List.set("Empty for the moment")
 
         
         
@@ -50,9 +73,11 @@ class Labyrinth:
 
         # Launch of the game
         self.level = self.load_labyrinth(self.current_level)
-        (self.canvas, self.sprite_perso, self.pictures) = self.display_labyrinth(self.level, self.window,\
-                                                 self.size_sprite, self.characPosition)
-        self.moveInGame.key_init(self.window, self.canvas, self.level, self.characPosition, self.sprite_perso, self)
+        (self.canvas, self.sprite_perso, self.pictures) = self.display_labyrinth(
+                                    self.level, self.window,
+                                    self.size_sprite, self.characPosition)
+        self.moveInGame.key_init(self.window, self.canvas, self.level,
+                                    self.characPosition, self.sprite_perso, self)
         
         # Event loop
         self.window.mainloop()
@@ -61,9 +86,10 @@ class Labyrinth:
     
     def load_labyrinth(self, name):
         """
-            Charge le labyrinthe depuis le fichier name.txt
-            name : name du fichier contenant le labyrinthe (sans l'extension .txt)
-            Valeur de retour : Une liste contenant les données du labyrinthe
+            Loads the labyrinth from file name.txt
+            Name: name of the file containing the labyrinth 
+                    (without the extension .txt)
+            Return value: A list containing the labyrinth data
         """
         # Reading the data in the file
         directory = os.path.dirname(__file__)
@@ -75,7 +101,8 @@ class Labyrinth:
             fil.close()
         except FileNotFoundError as e:
             print("The file was not found !")
-            print("Please check that the folder /dataGame contains {}.txt ".format(name))
+            print("Please check that the folder /dataGame contains {}.txt ".
+                format(name))
             os._exit(1)
         except Exception as e:
             raise e
@@ -90,24 +117,22 @@ class Labyrinth:
 
 
 
-    def display_labyrinth(self, lab, window, size_sprite, characPosition):
+    def display_labyrinth(self, labyrinth, window, size_sprite, characPosition):
         """
-            Affichage d'un labyrinthe
-            lab : Variable contenant le labyrinthe
-            window : Fenêtre graphique
-            size_sprite : Taille des sprites en pixels
-            characPosition : liste contenant la position du personnage
-                        [colonne, ligne]
-            Valeur de retour :
-                Tuple contenant le canevas, le sprite du personnage et
-                un dictionnaire des images utilisées pour les sprites
+            Viewing a labyrinth
+            Lab: Variable containing the labyrinth
+            Window: Graphic window
+            Size_sprite: Size of sprites in pixels
+            CharacPosition: list containing the position of the character
+                        [Column, line]
+            Return Value:
+                Tuple containing the canvas, the sprite of the character and
+                a dictionary of images used for sprites
         """
         self.can = Canvas(window, width = 764, height = 764)
-        
         self.picture_wall=PhotoImage(file = "sprites/wall.png")
         self.picture_floor=PhotoImage(file = "sprites/floor.png")
         self.picture_exit=PhotoImage(file = "sprites/exit.png")
-        self.picture_start=PhotoImage(file = "sprites/start.png") #manque
         self.picture_hero = PhotoImage(file = "sprites/macgyver.png")
         self.picture_guardian = PhotoImage(file = "sprites/guardian.png")
         self.picture_item = PhotoImage(file = "sprites/item.png")
@@ -116,60 +141,59 @@ class Labyrinth:
         self.itemInGame.random_item_position(self.level, self.item)
         
         n_line = 0
-        for line in lab:
+        for line in labyrinth:
             n_cols = 0
             for car in line :
                 # Floor display
                 if car == " ":
                     self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                    n_line + n_line*self.size_sprite, anchor = NW,
-                                    image = self.picture_floor)
+                            n_line + n_line*self.size_sprite, anchor = NW,
+                            image = self.picture_floor)
                 # Wall display
                 elif car == "+" or car == "-" or car == "|":
                     self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                    n_line + n_line*self.size_sprite, anchor = NW,
-                                    image = self.picture_wall)
+                            n_line + n_line*self.size_sprite, anchor = NW,
+                            image = self.picture_wall)
                 # Guardian display
                 elif car == "$":
                     self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                    n_line + n_line*self.size_sprite, anchor = NW,
-                                    image = self.picture_floor)
-                    self.guardian = self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                    n_line + n_line*self.size_sprite, anchor = NW,
-                                    image = self.picture_guardian)
+                            n_line + n_line*self.size_sprite, anchor = NW,
+                            image = self.picture_floor)
+                    self.guardian = self.can.create_image(
+                            n_cols + n_cols*self.size_sprite,
+                            n_line + n_line*self.size_sprite, anchor = NW,
+                            image = self.picture_guardian)
                 # Exit display
                 elif car == "O":
                     self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                    n_line + n_line*self.size_sprite, anchor = NW,
-                                    image = self.picture_floor)
+                            n_line + n_line*self.size_sprite, anchor = NW,
+                            image = self.picture_floor)
                     self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                    n_line + n_line*self.size_sprite, anchor = NW,
-                                    image = self.picture_exit) 
+                            n_line + n_line*self.size_sprite, anchor = NW,
+                            image = self.picture_exit) 
                 # Display items
                 else:
                     i = 0
                     for objet in self.item:
                         if car == str(i+1):
-                            self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                                                n_line + n_line*self.size_sprite, anchor = NW,
-                                                                image = self.picture_floor)
-                            self.item[i] = self.can.create_image(n_cols + n_cols*self.size_sprite,
-                                                                n_line + n_line*self.size_sprite, anchor = NW,
-                                                                image = self.picture_item)
+                            self.can.create_image(
+                                    n_cols + n_cols*self.size_sprite,
+                                    n_line + n_line*self.size_sprite,
+                                    anchor = NW, image = self.picture_floor)
+                            self.item[i] = self.can.create_image(
+                                    n_cols + n_cols*self.size_sprite,
+                                    n_line + n_line*self.size_sprite, 
+                                    anchor = NW, image = self.picture_item)
                         i += 1      
 
-                      
-                
                 n_cols += 1
             n_line += 1
  
-
          # Character display
-        self.sprite_hero = self.can.create_image(characPosition[0] + characPosition[0] * self.size_sprite,
-                                        characPosition[1] + characPosition[1] * self.size_sprite,
-                                        anchor=NW, image=self.picture_hero)
-
-            
+        self.sprite_hero = self.can.create_image(
+                characPosition[0] + characPosition[0] * self.size_sprite,
+                characPosition[1] + characPosition[1] * self.size_sprite,
+                anchor=NW, image=self.picture_hero)
 
 
         self.can.grid(row=1, column =2, columnspan=2, rowspan= 15)
